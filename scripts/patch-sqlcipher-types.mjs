@@ -14,32 +14,33 @@ if (!existsSync(pkgPath)) {
 }
 
 const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+const TYPES = "./index.d.ts";
 
-const exp = pkg.exports;
-if (!exp || typeof exp !== "object") {
-  console.log("[patch-sqlcipher-types] no exports map, nothing to do.");
-  process.exit(0);
-}
+function patchExports(exportsMap) {
+  if (!exportsMap || typeof exportsMap !== "object") return false;
+  const dot = exportsMap["."];
+  if (!dot) return false;
 
-function patchEntry(entry) {
-  if (!entry || typeof entry !== "object") return false;
-  if (entry.types) return false;
-  if (entry.types === undefined && entry.default) {
-    entry.types = "./index.d.ts";
+  // String form: ".": "./lib/index.js"
+  if (typeof dot === "string") {
+    exportsMap["."] = { types: TYPES, default: dot };
     return true;
+  }
+  // Object form: ".": { "default": "./lib/index.js" } (or { import, require })
+  if (typeof dot === "object" && !Array.isArray(dot)) {
+    if (dot.types) return false;
+    if (dot.default || dot.import) {
+      dot.types = TYPES;
+      return true;
+    }
   }
   return false;
 }
 
-let changed = false;
-// ".": { types?, default }
-if (exp["."] && typeof exp["."] === "object" && !Array.isArray(exp["."])) {
-  changed = patchEntry(exp["."]) || changed;
-}
-
+const changed = patchExports(pkg.exports);
 if (changed) {
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf8");
-  console.log("[patch-sqlcipher-types] exports patched: added \"types\" for \"better-sqlite3-multiple-ciphers\".");
+  console.log(`[patch-sqlcipher-types] patched: added "types" (${TYPES}) for "better-sqlite3-multiple-ciphers".`);
 } else {
   console.log("[patch-sqlcipher-types] already patched or nothing to patch.");
 }
