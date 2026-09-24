@@ -73,16 +73,21 @@
 ## 🚀 Быстрый старт
 
 ```bash
-npm install
+npm install           # postinstall автоматически чинит типы нативного драйвера
 
-# 1. Создать .env из примера
+# 1. Создать .env из примера (необязательно)
 cp .env.example .env   # Windows: copy .env.example .env
 
-# 2. Запуск — секреты сгенерируются автоматически при первом старте
+# 2. Наполнить демо-данными — на свежей БД сам создаст таблицы (из drizzle/) и зашифрует базу
+npm run db:seed
+
+# 3. Запуск — секреты сгенерируются автоматически при первом старте
 npm run dev
 ```
 
-Откройте **http://localhost:3000** — демо-данные можно наполнить командой `npm run db:seed`.
+Откройте **http://localhost:3000** — сайт уже наполнен демо-данными (5 конфигураций, склад ПК, отзывы, FAQ).
+
+> 🟢 Требуется **Node.js 20+** (Next.js 16). Windows: `copy .env.example .env` вместо `cp`.
 
 > 💡 Секреты приоритетно берутся из env (`AUTH_SECRET`, `DATABASE_ENCRYPTION_KEY`, `ADMIN_PASSWORD`),
 > если не заданы — генерируются при первом запуске в `data/secrets.json`.
@@ -179,13 +184,15 @@ npm run dev
 ```bash
 npm run db:generate  # миграции по схеме (папка drizzle/)
 npm run db:migrate   # применить миграции через зашифрованное соединение
-npm run db:seed      # демо-данные (конфигурации, склад ПК, отзывы, FAQ)
+npm run db:seed      # демо-данные; на свежей БД также создаёт таблицы из drizzle/
 npm run lint         # eslint
 npm run build        # продакшен-сборка
 npm start            # запуск собранного приложения
 ```
 
 > ⚠️ БД зашифрована (SQLCipher) — `db:push` недоступен, только `db:generate` + `db:migrate`.
+> Папка `drizzle/` с миграциями входит в репозиторий, поэтому на свежем клоне `db:seed`
+> создаёт все таблицы автоматически (при пропуске, если они уже есть).
 
 ---
 
@@ -193,26 +200,19 @@ npm start            # запуск собранного приложения
 
 ```bash
 npm ci
+npm run db:seed      # один раз: создаёт таблицы + демо-данные в зашифрованной БД
 npm run build
-npm run db:seed      # один раз (демо-данные), можно не запускать
+npm start            # если за nginx — internal port
 
 # секреты сгенерируются в data/secrets.json при первом запуске
 # пароль админки в prod печатается в консоль при первом старте,
 # затем его можно сменить в админке /admin/settings -> «Пароль админки»
-
-PORT=3000 npm start  # если за nginx — internal port
 ```
 
-<details>
-<summary><b>Известный нюанс с типами драйвера</b> (развернуть)</summary>
-
-Драйвер `better-sqlite3-multiple-ciphers` публикует декларацию типов обходом `exports` — типы
-подключаются правкой `node_modules/better-sqlite3-multiple-ciphers/package.json`: добавить
-`"types": "./index.d.ts"` в блок `"."` блока `exports`. Если после `npm ci` типы перестали
-резолвиться — повторите правку. В `next.config.ts` драйвер вынесен в `serverExternalPackages`,
-чтобы Turbopack не бандлил нативный `.node`.
-
-</details>
+> 💡 `postinstall` после `npm ci` автоматически чинит декларацию типов нативного драйвера
+> `better-sqlite3-multiple-ciphers` (скрипт `scripts/patch-sqlcipher-types.mjs`) — ручная правка
+> `node_modules` больше не нужна. В `next.config.ts` драйвер вынесен в `serverExternalPackages`,
+> чтобы Turbopack не бандлил нативный `.node`.
 
 ### Держим процесс живым — pm2
 

@@ -1,6 +1,27 @@
 import { asc } from "drizzle-orm";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { configs, faqItems, reviews, settings, units } from "./schema.js";
 import { db } from "./db.js";
+
+const migrationsFolder = join(process.cwd(), "drizzle");
+if (!existsSync(migrationsFolder)) {
+  console.error("Migrations folder not found:", migrationsFolder);
+  console.error('Run "npm run db:generate" first (this also happens on fresh clones after npm install).');
+  process.exit(1);
+}
+// На свежем клоне таблиц нет — создаём их; на уже существующей БД пропускаем,
+// иначе мигратор упадёт с "table already exists".
+const alreadyInitialized = !!db.$client
+  .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='configs'")
+  .get();
+if (alreadyInitialized) {
+  console.log("Таблицы уже есть — миграции пропущены, наполняем данными…");
+} else {
+  migrate(db, { migrationsFolder });
+  console.log("Таблицы созданы из миграций.");
+}
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   "site.name": "ПК Везде",
