@@ -1,26 +1,373 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f0c0c;
+  --foreground: #f2f2f2;
+  --panel: #141111;
+  --line: #302d2d;
+  --accent-1: #ea1343;
+  --accent-2: #ff1f51;
+  --accent-3: #ea8613;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-unbounded);
+  --font-mono: var(--font-source-code), ui-monospace, "SF Mono", Menlo, monospace;
+  --color-accent: var(--accent-1);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-accent-soft: color-mix(in srgb, var(--accent-1) 65%, white);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent-1) 40%, transparent);
+}
+
+/* Утилиты фирменного стиля */
+@utility font-display {
+  font-family: var(--font-unbounded), system-ui, sans-serif;
+}
+
+/* ---- Фирменный стиль ---- */
+
+/* Срезанный угол снизу-справа (карточки/кнопки) */
+@utility fancy-corner {
+  --cut: 30px;
+  --cut-px: var(--cut);
+  --square-size: calc(sqrt(pow(var(--cut), 2) + pow(var(--cut), 2)) * 1px);
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  clip-path: polygon(
+    100% 0,
+    100% calc(100% - var(--cut-px)),
+    calc(100% - var(--cut-px)) 100%,
+    0 100%,
+    0 0
+  );
+  position: relative;
+}
+
+.fancy-corner:before {
+  content: "";
+  height: var(--square-size);
+  width: var(--square-size);
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  right: -1px;
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  bottom: -1px;
+  transform: rotate(45deg);
+  transform-origin: 0 100%;
+}
+
+@utility fancy-corner--top-left {
+  --cut: 30px;
+  --cut-px: var(--cut);
+  --square-size: calc(sqrt(pow(var(--cut), 2) + pow(var(--cut), 2)) * 1px);
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  clip-path: polygon(
+    var(--cut-px) 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 var(--cut-px)
+  );
+  position: relative;
+}
+
+.fancy-corner--top-left:before {
+  content: "";
+  height: var(--square-size);
+  width: var(--square-size);
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  right: calc(100% - var(--cut-px) - 1px);
+  top: 0;
+  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  transform: rotate(45deg);
+  transform-origin: 100% 0;
+}
+
+/* Outline-кнопка со срезанным углом и моноширинным текстом */
+@utility btn-cr {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  background-color: color-mix(in srgb, var(--foreground) 3%, transparent);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%
+  );
+  font-family: var(--font-source-code), ui-monospace, monospace;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.btn-cr:not(:disabled):hover {
+  border-color: var(--accent-1);
+  background-color: color-mix(in srgb, var(--accent-1) 10%, transparent);
+  color: white;
+}
+
+/* Сплошная акцентная кнопка со срезанным углом */
+@utility btn-solid-cr {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #fff;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.06),
+    color-mix(in srgb, var(--accent-1) 88%, #1b060c)
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 12%, transparent);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%
+  );
+  font-family: var(--font-source-code), ui-monospace, monospace;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition:
+    filter 0.25s ease,
+    transform 0.25s ease;
+}
+
+.btn-solid-cr:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+.btn-solid-cr:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* Блик, пробегающий по кнопке при наведении */
+.btn-solid-cr::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.26) 50%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.7s ease;
+}
+
+.btn-solid-cr:not(:disabled):hover::before {
+  transform: translateX(130%);
+}
+
+/* Стрелка в срезанной кнопке сдвигается при наведении */
+.btn-cr svg {
+  transition: transform 0.25s ease;
+}
+
+.btn-cr:hover svg {
+  transform: translateX(4px);
+}
+
+/* Ховер-дубликат текста ссылок */
+@utility link-duplicate {
+  display: inline-block;
+  overflow: hidden;
+}
+
+.link-duplicate__text {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.25, 0.25, 0, 1);
+}
+
+.link-duplicate__text:after {
+  content: attr(data-text);
+  display: inherit;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateY(105%);
+}
+
+.link-duplicate-wrapper:not(:disabled):hover .link-duplicate__text {
+  transform: translateY(-105%);
+}
+
+/* Контурные крупные цифры (как process-item__num) */
+@utility text-stroke {
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
+/* Диагональные кресты-лучи */
+@utility bg-crosshair {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 47px,
+      color-mix(in srgb, white 10%, transparent) 47px 48px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 47px,
+      color-mix(in srgb, white 10%, transparent) 47px 48px
+    );
+}
+
+/* Моноширинная капсовая подпись-метка */
+@utility text-caption {
+  font-family: var(--font-source-code), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: -0.0267em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* Полосатый разделитель заголовка секции */
+@utility index-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 24px 32px;
+}
+
+.index-header:not(:last-child) {
+  margin-bottom: 64px;
+}
+
+/* Фон формы заявки: сетка + крест */
+@utility bg-cta-grid {
+  background-image:
+    linear-gradient(rgba(242, 242, 242, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 242, 242, 0.05) 1px, transparent 1px),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 63px,
+      rgba(242, 242, 242, 0.06) 63px 64px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 63px,
+      rgba(242, 242, 242, 0.06) 63px 64px
+    );
+  background-size:
+    44px 44px,
+    44px 44px,
+    90px 90px,
+    90px 90px;
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent-1) 40%, transparent) transparent;
+}
+
+@keyframes blink {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@utility animate-blink {
+  animation: blink 1.15s steps(1, end) infinite;
+}
+
+@keyframes glow-drift {
+  0% { transform: scale(1); opacity: 0.65; }
+  100% { transform: scale(1.12); opacity: 1; }
+}
+
+@utility animate-glow-drift {
+  animation: glow-drift 7s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@utility animate-pulse-glow {
+  animation: pulse-glow 3.5s ease-in-out infinite;
+}
+
+@utility animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+/* Доступность: отключаем декоративные анимации по запросу ОС */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal-anim {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .animate-pulse-glow,
+  .animate-marquee,
+  .animate-blink,
+  .animate-glow-drift {
+    animation: none;
+  }
+  .btn-solid-cr::before {
+    display: none;
+  }
+  .btn-cr svg {
+    transition: none;
+  }
 }
